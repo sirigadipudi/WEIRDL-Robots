@@ -1,0 +1,22 @@
+<launch>
+  <include file="$(find fetch_moveit_config)/launch/move_group.launch" />
+  <rosparam command="load" file="$(env HOME)/catkin_fetch_ws/realsense_crop.yaml" />
+  <arg name="filters" default="pointcloud" />
+  <arg name="align_depth" default="true"/>
+  <include file="$(find realsense2_camera)/launch/rs_camera.launch">
+    <arg name="filters" value="$(arg filters)" />
+    <arg name="align_depth" value="$(arg align_depth)" />
+  </include>
+
+  <include file="$(find robot_api)/launch/double.launch" />
+
+  <node type="rviz" name="rviz" pkg="rviz" args="-d $(env HOME)/catkin_fetch_ws/fetch.rviz" />  	<node pkg="tf" type="static_transform_publisher" name="tf_static_transform_publisher" args="-0.01 0.015 0.036 0 0 3.1415 head_camera_link camera_link 10" />
+	<node pkg="tf" type="static_transform_publisher" name="tf_static_transform_publisher_1" args="0.05 0.25 -0.05 0 0 0 1 camera_depth_optical_frame realsense 10" />
+  <node name="arm_obstacle_demo" pkg="applications" type="arm_obstacle_demo.py" output="screen" />
+  <node pkg="perception_fetch" type="crop_point_cloud_demo" name="crop_point_cloud_demo" output="screen">
+    <remap from="cloud_in" to="/camera/depth/color/points" />
+  </node>
+  <node pkg="perception_fetch" type="point_cloud_demo" name="point_cloud_demo" output="screen">
+    <remap from="cloud_in" to="cropped_cloud" />
+  </node>
+</launch>
